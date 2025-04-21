@@ -6,6 +6,14 @@ export interface GitHubAccount {
   accountLink?: string;
 }
 
+export interface GitCommit {
+  hash: string;
+  message: string;
+  url?: string;
+  author?: GitHubAccount;
+  date: Date;
+}
+
 const token: string | null = import.meta.env.GITHUB_TOKEN;
 
 const headers: RequestInit =
@@ -28,6 +36,26 @@ const repo: string = "PaperMC/docs";
 const emailCache: Map<string, GitHubAccount> = new Map();
 
 // Git
+export async function getGitCommit(filePath: string): Promise<GitCommit> {
+  const hash = execSync(`git log -1 --pretty="format:%h" -- "${filePath}"`).toString();
+  const message = execSync(`git log -1 --pretty="format:%s" -- "${filePath}"`).toString();
+  const date = new Date(execSync(`git log -1 --pretty="format:%at" -- "${filePath}"`).toString());
+
+  let gitCommit : GitCommit = {
+    hash: hash,
+    message: message,
+    date: date,
+    url: "https://github.com/".concat(repo.concat("/commit/", hash)),
+  }
+
+  let gitHubAccount = await getGitHubAccountFromFile(filePath);
+  if (gitHubAccount != null) {
+    gitCommit.author = gitHubAccount;
+  }
+
+  return gitCommit;
+}
+
 export async function getGitHubAccountFromFile(filePath: string): Promise<GitHubAccount | null> {
   const email = execSync(`git log -1 --pretty="format:%ae" -- "${filePath}"`).toString();
   const cached = emailCache.get(email);

@@ -1,10 +1,10 @@
 ---
-import { type GitHubAccount, getGitHubAccountFromFile } from "/src/utils/git-utils.ts";
+import { type GitCommit, getGitCommit } from "/src/utils/git-utils.ts";
 
 const { lang, lastUpdated } = Astro.locals.starlightRoute;
 const filePath = Astro.locals.starlightRoute.entry.filePath;
 
-const acc: GitHubAccount = await getGitHubAccountFromFile(filePath);
+const gitc: GitCommit = await getGitCommit(filePath);
 ---
 
 {
@@ -18,7 +18,9 @@ const acc: GitHubAccount = await getGitHubAccountFromFile(filePath);
         })}
       </time>
       {" by "}
-      <a href={acc.accountLink}>{acc.displayName}</a>
+      <a href={gitc.author.accountLink}>{gitc.author.displayName}</a>
+      {" in "}
+      <a href={gitc.url} title={gitc.message}>{gitc.hash}</a>
     </p>
   )
 }
